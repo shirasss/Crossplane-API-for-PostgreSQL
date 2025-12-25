@@ -143,7 +143,4 @@ kubectl delete -f prerequisites/
 #### 5. Connection Secret Generated
 ![Secret Created](screenshots/05-secret-created.png)
 
-## License
-
-MIT
 
