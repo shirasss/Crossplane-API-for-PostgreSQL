@@ -143,18 +143,7 @@ kubectl delete -f prerequisites/
 #### 5. Connection Secret Generated
 ![Secret Created](screenshots/05-secret-created.png)
 
-## Optional Enhancements
-
-- [ ] OpenAPI schema validation for column types
-- [ ] Composite Resource Claims (namespace-scoped)
-- [ ] Cleanup logic (drop tables on deletion)
-- [ ] Index creation support
-- [ ] Data migration jobs
-
 ## License
 
 MIT
 
-## Author
-
-[Your Name]
