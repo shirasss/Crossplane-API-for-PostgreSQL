@@ -143,4 +143,8 @@ kubectl delete -f prerequisites/
 #### 5. Connection Secret Generated
 ![Secret Created](screenshots/05-secret-created.png)
 
+#### 6. Apply antother XAppDatabase with another 2 tables
+![Secret Created](screenshots/06-another-xappdatabase.png)
 
+#### 6. Tables in PostgreSQL now
+![Secret Created](screenshots/07-psql-tables-again.png)
