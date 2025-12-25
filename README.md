@@ -132,16 +132,16 @@ kubectl delete -f prerequisites/
 ![Crossplane Installed](docs/screenshots/01-crossplane-installed.png)
 
 #### 2. XAppDatabase Created
-![XAppDatabase Created](docs/screenshots/02-xappdatabase-created.png)
+![XAppDatabase Created](screenshots/02-xappdatabase-created.png)
 
 #### 3. Jobs Completed Successfully
-![Jobs Completed](docs/screenshots/03-jobs-completed.png)
+![Jobs Completed](screenshots/03-jobs-completed.png)
 
 #### 4. Tables in PostgreSQL
-![Tables Created](docs/screenshots/04-psql-tables.png)
+![Tables Created](screenshots/04-psql-tables.png)
 
 #### 5. Connection Secret Generated
-![Secret Created](docs/screenshots/05-secret-created.png)
+![Secret Created](screenshots/05-secret-created.png)
 
 ## Optional Enhancements
 
