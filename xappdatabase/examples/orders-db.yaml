@@ -1,0 +1,46 @@
+apiVersion: database.platform.example.com/v1alpha1
+kind: XAppDatabase
+metadata:
+  name: orders-db
+spec:
+  parameters:
+    database: appdb
+    schema: public
+    tables:
+      - name: customers
+        columns:
+          - name: id
+            type: serial primary key
+          - name: name
+            type: varchar(255)
+          - name: email
+            type: varchar(255)
+          - name: created_at
+            type: timestamp default now()
+      - name: orders
+        columns:
+          - name: id
+            type: serial primary key
+          - name: customer_id
+            type: int references customers(id)
+          - name: total
+            type: numeric(10,2)
+          - name: status
+            type: varchar(50)
+          - name: created_at
+            type: timestamp default now()
+      - name: orderitems 
+        columns:
+          - name: id
+            type: serial primary key
+          - name: order_id
+            type: int references orders(id)
+          - name: product_name
+            type: varchar(255)
+          - name: quantity
+            type: int
+          - name: price
+            type: numeric(10,2)
+  writeConnectionSecretToRef:
+    name: orders-db-conn
+    namespace: prod

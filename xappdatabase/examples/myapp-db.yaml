@@ -1,0 +1,31 @@
+apiVersion: database.platform.example.com/v1alpha1
+kind: XAppDatabase
+metadata:
+  name: myapp-db
+  namespace: prod
+spec:
+  parameters:
+    database: appdb
+    schema: public
+    tables:
+      - name: users
+        columns:
+          - name: id
+            type: serial primary key
+          - name: email
+            type: varchar(255)
+          - name: created_at
+            type: timestamp
+      - name: sessions
+        columns:
+          - name: id
+            type: serial primary key
+          - name: user_id
+            type: int references users(id)
+          - name: token
+            type: varchar(500)
+          - name: expires_at
+            type: timestamp
+  writeConnectionSecretToRef:
+    name: myapp-db-conn
+    namespace: prod

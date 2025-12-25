@@ -1,0 +1,48 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xappdatabases.database.platform.example.com
+spec:
+  group: database.platform.example.com
+  names:
+    kind: XAppDatabase
+    plural: xappdatabases
+  claimNames:
+    kind: AppDatabase
+    plural: appdatabases
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                parameters:
+                  type: object
+                  properties:
+                    database: { type: string }
+                    schema: { type: string }
+                    tables:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name: { type: string }
+                          columns:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                name: { type: string }
+                                type: { type: string }
+                      required: ["name","columns"]
+              required: ["parameters"]
+            status:
+              type: object
+              properties:
+                phase: { type: string }
+

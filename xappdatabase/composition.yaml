@@ -1,0 +1,162 @@
+# apiVersion: apiextensions.crossplane.io/v1
+# kind: Composition
+# metadata:
+#   name: xappdatabase-postgres
+# spec:
+#   compositeTypeRef:
+#     apiVersion: database.platform.example.com/v1alpha1
+#     kind: XAppDatabase
+
+#   mode: Pipeline
+#   pipeline:
+#     - step: render-tables
+#       functionRef:
+#         name: function-go-templating
+#       input:
+#         apiVersion: gotemplating.fn.crossplane.io/v1beta1
+#         kind: GoTemplate
+#         source: Inline
+#         inline:
+#           template: |
+#             {{ $dbname := .observed.composite.resource.spec.parameters.database }}
+#             {{ $schema := .observed.composite.resource.spec.parameters.schema }}
+#             {{ range $idx, $table := .observed.composite.resource.spec.parameters.tables }}
+#             ---
+#             apiVersion: kubernetes.crossplane.io/v1alpha2
+#             kind: Object
+#             metadata:
+#               name: {{ $.observed.composite.resource.metadata.name }}-table-{{ $idx }}
+#               annotations:
+#                 gotemplating.fn.crossplane.io/composition-resource-name: table-{{ $idx }}
+#             spec:
+#               providerConfigRef:
+#                 name: default
+#               forProvider:
+#                 manifest:
+#                   apiVersion: batch/v1
+#                   kind: Job
+#                   metadata:
+#                     generateName: create-{{ $table.name }}-
+#                     namespace: prod
+#                   spec:
+#                     backoffLimit: 2
+#                     ttlSecondsAfterFinished: 300
+#                     template:
+#                       spec:
+#                         restartPolicy: Never
+#                         containers:
+#                           - name: psql
+#                             image: postgres:15
+#                             envFrom:
+#                               - secretRef:
+#                                   name: postgres-secret
+#                             command:
+#                               - sh
+#                               - -c
+#                               - |
+#                                 set -e
+#                                 echo "Creating table {{ $table.name }} in {{ $schema }}..."
+#                                 SQL="CREATE TABLE IF NOT EXISTS {{ $schema }}.{{ $table.name }} (
+#                                 {{- range $cidx, $col := $table.columns }}
+#                                   {{ $col.name }} {{ $col.type }}{{ if lt (add $cidx 1) (len $table.columns) }},{{ end }}
+#                                 {{- end }}
+#                                 );"
+#                                 echo "$SQL"
+#                                 psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "{{ $dbname }}" -c "$SQL"
+#                                 echo "Table {{ $table.name }} created successfully"
+#             {{ end }}
+
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xappdatabase-postgres
+spec:
+  compositeTypeRef:
+    apiVersion: database.platform.example.com/v1alpha1
+    kind: XAppDatabase
+
+  mode: Pipeline
+  pipeline:
+    - step: render-tables
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{ $dbname := .observed.composite.resource.spec.parameters.database }}
+            {{ $schema := .observed.composite.resource.spec.parameters.schema }}
+            {{ $secretName := .observed.composite.resource.spec.writeConnectionSecretToRef.name }}
+            {{ $secretNamespace := .observed.composite.resource.spec.writeConnectionSecretToRef.namespace }}
+            {{ range $idx, $table := .observed.composite.resource.spec.parameters.tables }}
+            ---
+            apiVersion: kubernetes.crossplane.io/v1alpha2
+            kind: Object
+            metadata:
+              name: {{ $.observed.composite.resource.metadata.name }}-table-{{ $idx }}
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: table-{{ $idx }}
+            spec:
+              providerConfigRef:
+                name: default
+              forProvider:
+                manifest:
+                  apiVersion: batch/v1
+                  kind: Job
+                  metadata:
+                    generateName: create-{{ $table.name }}-
+                    namespace: prod
+                  spec:
+                    backoffLimit: 2
+                    ttlSecondsAfterFinished: 300
+                    template:
+                      spec:
+                        restartPolicy: Never
+                        containers:
+                          - name: psql
+                            image: postgres:15
+                            envFrom:
+                              - secretRef:
+                                  name: postgres-secret
+                            command:
+                              - sh
+                              - -c
+                              - |
+                                set -e
+                                echo "Creating table {{ $table.name }} in {{ $schema }}..."
+                                SQL="CREATE TABLE IF NOT EXISTS {{ $schema }}.{{ $table.name }} (
+                                {{- range $cidx, $col := $table.columns }}
+                                  {{ $col.name }} {{ $col.type }}{{ if lt (add $cidx 1) (len $table.columns) }},{{ end }}
+                                {{- end }}
+                                );"
+                                echo "$SQL"
+                                psql -h "$POSTGRES_HOST" -U "$POSTGRES_USER" -d "{{ $dbname }}" -c "$SQL"
+                                echo "Table {{ $table.name }} created successfully"
+            {{ end }}
+            ---
+            apiVersion: kubernetes.crossplane.io/v1alpha2
+            kind: Object
+            metadata:
+              name: {{ $.observed.composite.resource.metadata.name }}-app-secret
+              annotations:
+                gotemplating.fn.crossplane.io/composition-resource-name: app-secret
+            spec:
+              providerConfigRef:
+                name: default
+              forProvider:
+                manifest:
+                  apiVersion: v1
+                  kind: Secret
+                  metadata:
+                    name: {{ $secretName }}-app
+                    namespace: {{ $secretNamespace }}
+                  type: Opaque
+                  stringData:
+                    host: postgres.prod.svc.cluster.local
+                    port: "5432"
+                    database: {{ $dbname }}
+                    username: appuser
+                    password: password
+                    connection-string: "postgresql://appuser:password@postgres.prod.svc.cluster.local:5432/{{ $dbname }}"
