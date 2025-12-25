@@ -129,7 +129,7 @@ kubectl delete -f prerequisites/
 ### Screenshots
 
 #### 1. Crossplane and Providers Installed
-![Crossplane Installed](docs/screenshots/01-crossplane-installed.png)
+![Crossplane Installed](screenshots/01-crossplane-installed.png)
 
 #### 2. XAppDatabase Created
 ![XAppDatabase Created](screenshots/02-xappdatabase-created.png)
